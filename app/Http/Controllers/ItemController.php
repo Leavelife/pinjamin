@@ -15,21 +15,17 @@ class ItemController extends Controller
     {
         return Item::where('owner_id', auth()->id())->get();
     }
-    //
     public function create()
     {
         $categories = Category::all();
         return view('items-form', compact('categories'));
     }
-
-
     public function store(Request $request)
     {
         // Check if user is authenticated
         if (!auth()->check()) {
             return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu!');
         }
-
         $request->validate([
             'name' => 'required',
             'category' => 'nullable|string|max:255',
