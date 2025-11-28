@@ -1,0 +1,116 @@
+/* public/css/custom.css */
+
+/* --- Variabel Warna Custom (Menggunakan #3AA6B9) --- */
+:root {
+    --primary-color: #3AA6B9; /* Biru-Cyan Utama: #3AA6B9 */
+    --secondary-color: #61C4D4; /* Aksen/Tombol */
+    --background-color: #E8F6F8; /* Latar Belakang */
+    --card-border-color: #61C4D4; 
+}
+
+/* --- Pengaturan Body (Latar Belakang) --- */
+body {
+    background-color: var(--background-color);
+}
+
+/* --- Styling Header Bar Sesuai UI Gambar --- */
+.header-bar {
+    background-color: var(--primary-color);
+    padding: 20px 0; 
+    border-radius: 0 0 10px 10px; 
+}
+
+.header-inner-width {
+    max-width: 1200px; 
+    margin: 0 auto; 
+}
+
+.logo-box {
+    padding: 8px !important;
+    border-radius: 8px !important;
+}
+
+.logo-icon {
+    width: 24px;
+    height: 24px;
+    display: block; 
+}
+
+.app-tagline {
+    font-size: 0.8em;
+    opacity: 0.9;
+}
+
+/* --- Styling Card Otentikasi --- */
+.auth-card {
+    max-width: 500px; 
+    width: 100%;     
+    border-radius: 12px;
+    border: 3px solid var(--card-border-color); 
+}
+
+/* --- Mengatur Lebar Container Utama --- */
+.custom-container-width {
+    max-width: 800px; 
+}
+
+/* --- Styling Teks dan Tombol --- */
+.text-primary-color {
+    color: var(--primary-color) !important;
+}
+
+.btn-secondary-color {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary-color:hover {
+    background-color: #2F92A3; 
+    border-color: #2F92A3;
+    color: white;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(58, 166, 185, 0.25); 
+}
+
+/* ---------------------------------------------------------------- */
+/* --- PERBAIKAN DAN PENYESUAIAN PASSWORD TOGGLE (SVG) --- */
+/* ---------------------------------------------------------------- */
+
+.password-toggle-container {
+    /* Harus relatif agar ikon bisa absolut */
+    position: relative; 
+}
+
+.password-toggle-icon {
+    /* Posisikan di dalam input */
+    position: absolute;
+    right: 15px; 
+    top: 50%;
+    transform: translateY(-50%); 
+    cursor: pointer;
+    user-select: none; 
+    color: #6c757d; /* Warna abu-abu default */
+}
+
+/* Agar ikon SVG mengambil warna dari parent (.password-toggle-icon) */
+.password-toggle-icon svg {
+    stroke: currentColor; 
+}
+
+/* Pastikan input memiliki padding yang cukup agar teks tidak tertutup ikon */
+.password-toggle-container .form-control {
+    padding-right: 45px; 
+}
+
+/* --- Responsif (Sintaksis Diperbaiki) --- */
+@media (max-width: 768px) {
+    .custom-container-width {
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
