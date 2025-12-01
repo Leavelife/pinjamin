@@ -3,29 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-
-use App\Http\Controllers\ItemController;
-use App\Http\Controllers\BorrowController;
-use App\Http\Controllers\BarangController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\HistoryController;
-use App\Http\Controllers\NotificationController;
+
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminProfileController;
+
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminDashboardController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routess
-|--------------------------------------------------------------------------
-*/
-
-// ----------------------------------------------
-// 1. PUBLIC PAGES (tidak perlu login)
-// ----------------------------------------------
-
-Route::get('/', function () {
-    return redirect()->route('dashboard');
-});
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\LoanController;
+use App\Http\Controllers\NotificationController;
 
 Route::view('/onboarding', 'onboarding')->name('onboarding');
 Route::view('/role-selection', 'role-selection')->name('role.selection');
@@ -64,83 +52,112 @@ Route::post('/logout', function (Request $request) {
     return redirect('/');
 })->name('logout');
 
-// Dashboard publik
-Route::view('/dashboard', 'user.dashboard')->name('dashboard');
-
-// Halaman pinjam barang (list barang)
-Route::view('/pinjam', 'user.pinjam')->name('pinjam');
-
-// Detail barang
-Route::get('/barang/{barang}', [BarangController::class, 'show'])->name('barang.detail');
-
-// Form menawarkan barang (PUBLIC)
-Route::get('/tawarkan-barang', [BarangController::class, 'create'])->name('barang.create');
-
-// Riwayat (public)
-Route::get('/riwayat', [HistoryController::class, 'index'])->name('riwayat');
-
-// Notifikasi (public)
-Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifikasi');
-Route::post('/notifikasi/{id}/read', [NotificationController::class, 'markRead'])->name('notifikasi.read');
-
-
-// ----------------------------------------------
-// 2. ROUTE UNTUK USER (BUTUH LOGIN)
-// ----------------------------------------------
 Route::middleware(['auth'])->group(function () {
 
-    // Ajukan peminjaman
-    Route::post('/barang/{barang}/ajukan', [BarangController::class, 'ajukanPeminjaman'])
-        ->name('barang.ajukan');
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return view('user.dashboard');
+    })->name('dashboard');
+    Route::get('/', function () {
+        return view('user.dashboard');
+    })->name('dashboard');
     
-    // Simpan barang yg ditawarkan
-    Route::post('/tawarkan-barang', [BarangController::class, 'store'])
-        ->name('barang.store');
 
-    // Route lainnya...
+    // ============================
+    // PROFILE
+    // ============================
+    Route::prefix('profile')->name('profile.')->group(function () {
+
+        Route::get('/view', fn() => view('user.profile', ['user' => Auth::user(), 'totalDipinjam' => $totalDipinjam ?? 0,'totalDipinjamkan' => $totalDipinjamkan ?? 0]))->name('view.page');
+        // Halaman profile (VIEW via controller)
+        Route::get('/', [ProfileController::class, 'me'])->name('index');
+
+        // Halaman edit profile (VIEW langsung)
+        Route::get('/edit', function () {
+            return view('user.profile_edit', ['user' => Auth::user()]);
+        })->name('edit.page');
+
+        // Update profile (POST)
+        Route::post('/update', [ProfileController::class, 'update'])->name('update');
+
+    });
+
+
+
+    // ============================
+    // BARANG SAYA
+    // ============================
+    Route::prefix('items')->name('items.')->group(function () {
+
+        // Semua barang selain milik saya (UI: Pinjam Barang)
+        Route::get('/all', [ItemController::class, 'index'])->name('all');
+        Route::get('/', [ItemController::class, 'showItemsPage'])->name('index');
+
+        // Barang saya
+        Route::get('/mine', [ItemController::class, 'myItemsPage'])->name('mine');
+
+        // Tambah barang
+        Route::post('/store', [ItemController::class, 'store'])->name('store');
+
+        // Detail barang
+        Route::get('show/{id}', [ItemController::class, 'show'])->name('show.page');
+
+        // Update barang saya
+        Route::post('/{id}/update', [ItemController::class, 'update'])->name('update.page');
+
+        // Hapus barang saya
+        Route::delete('/{id}/delete', [ItemController::class, 'destroy'])->name('delete');
+    });
+    Route::get('/barang/create', fn() => view('barang.create'))->name('barang.create.page');
+
+    // ============================
+    // PEMINJAMAN / LOAN
+    // ============================
+    Route::prefix('loan')->name('loan.')->group(function () {
+
+        // Ajukan pinjaman untuk barang tertentu
+        Route::post('/request/{itemId}', [LoanController::class, 'requestLoan'])->name('request');
+
+        // Riwayat pinjaman saya
+        Route::get('/history', [LoanController::class, 'historyPage'])->name('history.page');
+
+        // Detail pinjaman saya
+        Route::get('/detail/{id}', [LoanController::class, 'detail'])->name('detail');
+    });
+
+    Route::get('/pinjam', fn() => view('user.pinjam'))->name('user.pinjam.page');
+    Route::get('/manajemen-barang', [ItemController::class, 'myItemsPage'])
+        ->middleware('auth')
+        ->name('items.mine.page');
+
+    // ============================
+    // NOTIFIKASI
+    // ============================
+    Route::get('/notifications', fn() => view('user.notification'))->name('user.notification.page');
+    Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
+
+    // Menandai notifikasi sebagai sudah dibaca (bisa dipakai AJAX)
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
-
-// ----------------------------------------------
-// 3. ADMIN ROUTES
-// ----------------------------------------------
-// ADMIN DASHBOARD (tanpa login)
-Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-
-// ADMIN ROUTES (dengan middleware auth & admin untuk action lainnya)
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::post('/peminjaman/{id}/approve', [AdminDashboardController::class, 'approvePeminjaman'])->name('approve-peminjaman');
-    Route::post('/peminjaman/{id}/reject', [AdminDashboardController::class, 'rejectPeminjaman'])->name('reject-peminjaman');
-    Route::post('/user/{id}/block', [AdminDashboardController::class, 'blockUser'])->name('block-user');
-    Route::post('/user/{id}/unblock', [AdminDashboardController::class, 'unblockUser'])->name('unblock-user');
-    Route::get('/user/{id}/activity', [AdminDashboardController::class, 'userActivity'])->name('user-activity');
+
+    // Dashboard
+    Route::get('/stat', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // User Management
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.delete');
+
+    // Categories
+    Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/{id}', [AdminCategoryController::class, 'show'])->name('categories.show');
+    Route::post('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.delete');
+
+    // Profile Admin
+    Route::get('/profile', [AdminProfileController::class, 'me'])->name('profile.index');
+    Route::post('/profile/update', [AdminProfileController::class, 'update'])->name('profile.update');
 });
-
-// ✅ PROFIL USER (TIDAK PERLU LOGIN)
-Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
-
-// Form edit profile (jika ada method edit)
-Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-
-// Update profile
-Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-
-Route::get('/manajemen-barang', [BarangController::class, 'manajemen'])->name('barang.manajemen');
-
-// PUBLIC ROUTES (tidak perlu login)
-Route::get('/manajemen-barang', [BarangController::class, 'manajemen'])->name('barang.manajemen');
-
-// atau jika mau hanya user tertentu bisa edit:
-Route::middleware(['auth'])->group(function () {
-    Route::get('/barang/create', [BarangController::class, 'create'])->name('barang.create');
-    Route::post('/barang', [BarangController::class, 'store'])->name('barang.store');
-    Route::get('/barang/{barang}/edit', [BarangController::class, 'edit'])->name('barang.edit');
-    Route::put('/barang/{barang}', [BarangController::class, 'update'])->name('barang.update');
-    Route::delete('/barang/{barang}', [BarangController::class, 'destroy'])->name('barang.destroy');
-});
-
-// Public route untuk detail & list
-Route::get('/barang', [BarangController::class, 'index'])->name('barang.index');
-Route::get('/barang/{barang}', [BarangController::class, 'show'])->name('barang.show');
-
-

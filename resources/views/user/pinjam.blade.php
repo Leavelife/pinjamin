@@ -106,4 +106,24 @@
 
 </div>
 
+<!-- ITEMS CARD SECTION -->
+<div class="items-container mt-4 max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    @forelse($items as $item)
+        <div class="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
+            <div>
+                <h3 class="font-semibold text-lg mb-2">{{ $item->name }}</h3>
+                <p class="text-sm text-gray-600 mb-2">Jenis: {{ $item->type }}</p>
+                <p class="text-sm text-gray-600 mb-2">Status: <span class="font-medium">{{ $item->status }}</span></p>
+                <p class="text-sm text-gray-600">Pemilik: {{ $item->user->name ?? 'Tidak diketahui' }}</p>
+            </div>
+            <a href="{{ route('items.show.page', $item->id) }}" class="mt-3 text-center bg-blue-500 py-2 rounded hover:bg-blue-600">
+                Lihat Detail
+            </a>
+        </div>
+    @empty
+        <p class="col-span-full text-center text-gray-500 mt-4">Belum ada barang tersedia.</p>
+    @endforelse
+</div>
+
+
 @endsection

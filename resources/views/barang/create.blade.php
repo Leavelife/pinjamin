@@ -70,6 +70,18 @@
         transition: all 0.3s;
     }
 
+    #imagePreview {
+        margin-bottom: 15px;
+    }
+
+    #previewImg {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
     .btn-submit {
         background: #3AA6B9;
         border: none;
@@ -307,130 +319,166 @@
         </div>
     @endif
     
-    <form action="{{ route('barang.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('items.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         {{-- 1. Upload Foto --}}
         <div class="mb-4">
-            <label class="form-label">Foto Barang</label>
-            <div class="upload-area" onclick="document.getElementById('gambar_input').click()">
-                <input type="file" name="gambar" id="gambar_input" accept="image/png, image/jpeg, image/jpg" class="d-none">
+            <label class="form-label">Foto Barang <span class="text-danger">*</span></label>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('photo_input').click()">
+                <input type="file" name="photo" id="photo_input" accept="image/png, image/jpeg, image/jpg" class="d-none" onchange="previewImage(this)">
                 
-                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div id="imagePreview" style="display: none;">
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+
+                <svg class="upload-icon" id="uploadIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
 
-                <p class="mb-1" style="font-weight: 600; color: #4A5568;">Klik untuk upload foto</p>
+                <p class="mb-1" id="uploadText" style="font-weight: 600; color: #4A5568;">Klik untuk upload foto</p>
                 <p class="mb-0" style="font-size: 13px; color: #A0AEC0;">PNG, JPG, JPEG hingga 5MB</p>
             </div>
-            @error('gambar')
-                <p class="error-text">{{ $message }}</p>
-            @enderror
-        </div>
-        
-        {{-- 2. Nama Barang --}}
-        <div class="mb-4">
-            <label for="nama" class="form-label">Nama Barang</label>
-            <input type="text" name="nama" id="nama" class="form-control" 
-                    placeholder="Contoh: Kamera Canon EOS M50" value="{{ old('nama') }}">
-            @error('nama')
+            @error('photo')
                 <p class="error-text">{{ $message }}</p>
             @enderror
         </div>
 
-        {{-- 3. Kategori Barang --}}
+        {{-- 2. Nama Barang --}}
         <div class="mb-4">
-            <label for="kategori" class="form-label">Kategori Barang</label>
-            <select name="kategori" id="kategori" class="form-select">
+            <label for="name" class="form-label">Nama Barang <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="name" class="form-control"
+                placeholder="Contoh: Kamera Canon EOS M50" value="{{ old('name') }}" required>
+            @error('name')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- 3. Kategori --}}
+        <div class="mb-4">
+            <label for="category" class="form-label">Kategori Barang <span class="text-danger">*</span></label>
+            <select name="category" id="category" class="form-select" required>
                 <option value="" disabled selected>Pilih kategori</option>
-                @if (isset($kategoris))
-                    @foreach ($kategoris as $kategori)
-                        <option value="{{ $kategori }}" {{ old('kategori') == $kategori ? 'selected' : '' }}>{{ $kategori }}</option>
-                    @endforeach
-                @else
-                    <option value="Elektronik">Elektronik</option>
-                    <option value="Buku">Buku</option>
-                    <option value="Peralatan Olahraga">Peralatan Olahraga</option>
-                    <option value="Jasa">Jasa</option>
-                    <option value="Lain-lain">Lain-lain</option>
-                @endif
+
+                @foreach ($kategoris ?? ['Elektronik', 'Buku', 'Peralatan Olahraga', 'Jasa', 'Lain-lain'] as $cat)
+                    <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>
+                        {{ $cat }}
+                    </option>
+                @endforeach
+
             </select>
-            @error('kategori')
+            @error('category')
                 <p class="error-text">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- 4. Deskripsi --}}
         <div class="mb-4">
-            <label for="deskripsi" class="form-label">Deskripsi</label>
-            <textarea name="deskripsi" id="deskripsi" rows="4" class="form-control" 
-                        placeholder="Tulis deskripsi barang di sini...">{{ old('deskripsi') }}</textarea>
-            @error('deskripsi')
+            <label for="description" class="form-label">Deskripsi</label>
+            <textarea name="description" id="description" rows="4" class="form-control"
+                    placeholder="Tulis deskripsi barang di sini...">{{ old('description') }}</textarea>
+            @error('description')
                 <p class="error-text">{{ $message }}</p>
             @enderror
-        </div>
-        
-        {{-- 5. Lokasi Pengambilan --}}
-        <div class="mb-4">
-            <label for="lokasi" class="form-label">Lokasi Pengambilan</label>
-            <input type="text" name="lokasi" id="lokasi" class="form-control" 
-                    placeholder="Contoh: Gedung Teknik Informatika B302" value="{{ old('lokasi') }}">
-            @error('lokasi')
-                <p class="error-text">{{ $message }}</p>
-            @enderror
-        </div>
-        
-        {{-- 6 & 7. Tanggal Mulai dan Selesai --}}
-        <div class="row mb-4">
-            <div class="col-md-6 mb-3 mb-md-0">
-                <label for="tgl_mulai" class="form-label">Tanggal Mulai Peminjaman</label>
-                <input type="date" name="tgl_mulai" id="tgl_mulai" class="form-control" value="{{ old('tgl_mulai') }}">
-                @error('tgl_mulai')
-                    <p class="error-text">{{ $message }}</p>
-                @enderror
-            </div>
-            
-            <div class="col-md-6">
-                <label for="tgl_selesai" class="form-label">Tanggal Selesai Peminjaman</label>
-                <input type="date" name="tgl_selesai" id="tgl_selesai" class="form-control" value="{{ old('tgl_selesai') }}">
-                @error('tgl_selesai')
-                    <p class="error-text">{{ $message }}</p>
-                @enderror
-            </div>
         </div>
 
-        {{-- Tips Box --}}
-        <div class="tips-box">
-            <div class="tips-icon">
-                <i class="bi bi-lightbulb"></i>
-            </div>
-            <p>
-                <strong>Tips:</strong> Foto yang jelas dan deskripsi detail akan membuat barangmu lebih menarik untuk dipinjam.
-            </p>
+        {{-- 5. Lokasi Pengambilan --}}
+        <div class="mb-4">
+            <label for="pickup_address" class="form-label">Lokasi Pengambilan <span class="text-danger">*</span></label>
+            <input type="text" name="pickup_address" id="pickup_address" class="form-control"
+                placeholder="Contoh: Gedung Teknik Informatika B302" value="{{ old('pickup_address') }}">
+            @error('pickup_address')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
         </div>
-        
+
+        {{-- 6. Jumlah Barang --}}
+        <div class="mb-4">
+            <label for="qty" class="form-label">Jumlah Barang <span class="text-danger">*</span></label>
+            <input type="number" name="qty" id="qty" class="form-control"
+                placeholder="1" min="1" value="{{ old('qty', 1) }}">
+            @error('qty')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- 7. Kondisi Barang --}}
+        <div class="mb-4">
+            <label for="condition" class="form-label">Kondisi Barang <span class="text-danger">*</span></label>
+            <select name="condition" id="condition" class="form-select">
+                <option value="" disabled selected>Pilih kondisi</option>
+                <option value="baru" {{ old('condition') == 'baru' ? 'selected' : '' }}>Baru</option>
+                <option value="bekas" {{ old('condition') == 'bekas' ? 'selected' : '' }}>Bekas</option>
+                <option value="baik" {{ old('condition') == 'baik' ? 'selected' : '' }}>Baik</option>
+            </select>
+            @error('condition')
+                <p class="error-text">{{ $message }}</p>
+            @enderror
+        </div>
+
         {{-- Tombol Submit --}}
         <div>
             @guest
                 <div class="auth-warning">
                     Anda harus <a href="{{ route('login') }}">Login</a> untuk dapat menambahkan barang.
                 </div>
-                <button type="button" class="btn-disabled" disabled>
-                    Tambahkan Barang
-                </button>
+                <button type="button" class="btn-disabled" disabled>Tambahkan Barang</button>
             @else
-                <button type="submit" class="btn-submit">
-                    Tambahkan Barang
-                </button>
+                <button type="submit" class="btn-submit">Tambahkan Barang</button>
             @endguest
         </div>
     </form>
+
 </div>
 
 @endsection
 
 @push('scripts')
 <script>
+    // Preview gambar sebelum upload
+    function previewImage(input) {
+        const file = input.files[0];
+        const preview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const uploadIcon = document.getElementById('uploadIcon');
+        const uploadText = document.getElementById('uploadText');
+        const uploadArea = document.getElementById('uploadArea');
+
+        if (file) {
+            // Validasi ukuran file (5MB = 5 * 1024 * 1024 bytes)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Ukuran file terlalu besar! Maksimal 5MB.');
+                input.value = '';
+                return;
+            }
+
+            // Validasi tipe file
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                alert('Format file tidak didukung! Hanya PNG, JPG, dan JPEG yang diizinkan.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+                uploadIcon.style.display = 'none';
+                uploadText.textContent = 'Klik untuk mengganti foto';
+                uploadArea.style.borderColor = '#3AA6B9';
+                uploadArea.style.background = '#EDF2F7';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.style.display = 'none';
+            uploadIcon.style.display = 'block';
+            uploadText.textContent = 'Klik untuk upload foto';
+            uploadArea.style.borderColor = '#CBD5E0';
+            uploadArea.style.background = '#F7FAFC';
+        }
+    }
+
     // Close modal function
     function closeModal() {
         const modal = document.getElementById('successModal');

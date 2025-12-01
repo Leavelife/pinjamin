@@ -3,6 +3,7 @@
 @extends('layouts.app') 
 
 @section('content')
+
 <div class="container mx-auto p-4 max-w-4xl">
     
     {{-- Notifikasi Error/Peringatan di atas --}}
@@ -16,26 +17,24 @@
         
         {{-- Kolom Kiri: Gambar --}}
         <div class="md:w-1/3 w-full flex justify-center mb-6 md:mb-0 md:mr-6">
-            <img src="{{ $barang->gambar ?? asset('images/default-book.png') }}" alt="{{ $barang->nama }}" class="max-w-xs shadow-xl rounded-lg w-full object-cover">
+            <img src="{{ asset(path: 'storage/'. $barang->photo) }}" alt="{{ $barang->name }}" class="max-w-xs shadow-xl rounded-lg w-full object-cover">
         </div>
         
         {{-- Kolom Kanan: Detail & Aksi --}}
         <div class="md:w-2/3 w-full">
             
             <div class="flex justify-between items-center mb-4">
-                <h1 class="text-3xl font-bold text-gray-800">{{ $barang->nama }}</h1>
+                <h1 class="text-3xl font-bold text-gray-800">{{ $barang->name }}</h1>
                 {{-- Status --}}
                 <span class="inline-block px-4 py-1 text-sm font-semibold rounded-full 
-                    @if($barang->status == 'Tersedia') bg-green-200 text-green-800 
-                    @else bg-red-200 text-red-800 @endif
-                ">
-                    {{ $barang->status }}
+                    {{ strtolower($barang->status) == 'tersedia' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }}">
+                    {{ ucfirst($barang->status) }}
                 </span>
-            </div>
 
+            </div>
             {{-- Deskripsi --}}
-            <p class="mt-2 text-gray-600 mb-6 leading-relaxed">
-                {{ $barang->deskripsi }}
+            <p class="mt-2 px-4 text-gray-600 mb-6 leading-relaxed">
+                {{ $barang->description }}
             </p>
 
             {{-- Detail Pemilik & Peminjaman Grid --}}
@@ -45,45 +44,13 @@
                 <div class="p-4 bg-teal-50/50 rounded-lg border border-teal-100">
                     <h3 class="text-lg font-semibold mb-2 text-teal-700">Informasi pemilik</h3>
                     <ul class="text-sm space-y-1 text-gray-600">
-                        <li><i class="fas fa-user mr-2"></i><strong>Nama:</strong> {{ $barang->owner->name }}</li>
-                        <li><i class="fas fa-building mr-2"></i><strong>Institusi:</strong> {{ $barang->owner->institution ?? 'Tidak Tersedia' }}</li>
-                        <li><i class="fas fa-phone mr-2"></i><strong>Kontak:</strong> {{ $barang->owner->phone_number ?? '-' }}</li>
-                        <li><i class="fas fa-envelope mr-2"></i><strong>Email:</strong> {{ $barang->owner->email }}</li>
-                    </ul>
-                </div>
-
-                {{-- Informasi Peminjaman --}}
-                <div class="p-4 bg-teal-50/50 rounded-lg border border-teal-100">
-                    <h3 class="text-lg font-semibold mb-2 text-teal-700">Informasi peminjaman</h3>
-                    <ul class="text-sm space-y-1 text-gray-600">
-                        <li><i class="fas fa-calendar-alt mr-2"></i><strong>Estimasi Pinjam:</strong> 30 hari</li>
-                        <li><i class="fas fa-map-marker-alt mr-2"></i><strong>Lokasi Pengambilan:</strong> {{ $barang->lokasi }}</li>
-                        <li>(Estimasi Kembali: {{ $estimasiPengembalian }})</li>
+                        <li><i class="fas fa-user mr-2"></i><strong>Nama:</strong> {{ $barang->user->name }}</li>
+                        <li><i class="fas fa-phone mr-2"></i><strong>Kontak:</strong> {{ $barang->user->no_hp ?? 'kosong' }}</li>
+                        <li><i class="fas fa-envelope mr-2"></i><strong>Email:</strong> {{ $barang->user->email }}</li>
                     </ul>
                 </div>
             </div>
 
-            {{-- Tombol Ajukan Peminjaman --}}
-            <div class="mt-8">
-                @auth
-                    @if($barang->status == 'Tersedia')
-                        <form action="{{ route('barang.ajukan', $barang) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md">
-                                Ajukan peminjaman
-                            </button>
-                        </form>
-                    @else
-                        <button class="w-full bg-gray-400 text-white font-bold py-3 px-6 rounded-lg text-lg cursor-not-allowed" disabled>
-                            {{ $barang->status }} (Tidak Dapat Dipinjam)
-                        </button>
-                    @endif
-                @else
-                    <a href="{{ route('login') }}" class="w-full block text-center bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300">
-                        Login untuk Meminjam
-                    </a>
-                @endauth
-            </div>
         </div>
     </div>
 </div>

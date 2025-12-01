@@ -411,146 +411,38 @@
         }
     }
 </style>
-
-<div class="riwayat-container">
-    <h3 class="page-title">Riwayat Aktivitas</h3>
-
-    <div class="riwayat-table">
-        <div class="riwayat-header">
-            <div>Item</div><div>Keterangan</div><div>Tanggal</div><div>Status</div><div>Aksi</div>
-        </div>
-
-        @forelse($items as $it)
-            <div class="riwayat-row">
-                <div class="barang-info">
-                    <img src="{{ $it['meta']->gambar ?? '/images/default.png' }}" class="barang-img" alt="">
-                    <div class="barang-text">
-                        <h4><a href="{{ $it['url'] }}">{{ $it['title'] }}</a></h4>
-                        <p>{{ $it['subtitle'] }}</p>
-                    </div>
-                </div>
-                <div class="keterangan-info"><p>{{ ucfirst($it['type']) }}</p></div>
-                <div class="tanggal-info"><p>{{ $it['date']->format('d M Y H:i') }}</p></div>
-                <div>
-                    <span class="status-badge status-{{ Str::slug($it['status']) }}">{{ $it['status'] }}</span>
-                </div>
-                <div class="aksi-buttons">
-                    <a href="{{ $it['url'] }}" class="btn-detail btn-aksi">Detail</a>
-                </div>
-            </div>
-        @empty
-            <div class="p-4 text-center text-muted">Belum ada riwayat.</div>
-        @endforelse
-    </div>
-</div>
-
-<!-- Modal: Hubungi Peminjam -->
-<div id="chatModal" class="custom-modal">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3>Hubungi Peminjam</h3>
-        </div>
-        <div class="modal-body-custom">
-            <div class="contact-info">
-                <p><strong>Kontak:</strong> 0812-3456-7891</p>
-                <p><strong>Email:</strong> nuru.students.um.ac.id</p>
+@forelse($loans as $it)
+    <div class="riwayat-row">
+        <div class="barang-info">
+            <img src="{{ $it['meta']['gambar'] }}" class="barang-img" alt="">
+            <div class="barang-text">
+                <h4><a href="{{ $it['url'] }}">{{ $it['title'] }}</a></h4>
+                <p>{{ $it['subtitle'] }}</p>
             </div>
         </div>
-        <div class="modal-footer-custom">
-            <button class="btn-modal btn-primary-modal" onclick="closeModal('chatModal')">Tutup</button>
-        </div>
-    </div>
-</div>
 
-<!-- Modal: Detail Buku -->
-<div id="detailModal" class="custom-modal">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3>Buku Laut Bercerita</h3>
+        <div class="keterangan-info">
+            <p>{{ ucfirst($it['type']) }}</p>
         </div>
-        <div class="modal-body-custom">
-            <p>Buku Laut Bercerita adalah harga karya Leila S. Chudori yang diterbitkan oleh Kepustakaan Populer Gramedia (KPG) Jakarta pada tahun 2017. Novel ini berkisah tentang perundungan, cinta, takut-um, dan kesewenang-wenangan.</p>
-            
-            <div class="detail-info-box">
-                <h4 style="color: #308AA5; margin-bottom: 15px;">Informasi peminjaman</h4>
-                <div class="info-row">
-                    <div class="info-label">📅 30 Hari</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">📍 Asrama Suko</div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="btn-modal btn-primary-modal" onclick="closeModal('detailModal')">Tutup</button>
-        </div>
-    </div>
-</div>
 
-<!-- Modal: Konfirmasi Peminjaman -->
-<div id="approveModal" class="custom-modal">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3>Barangmu ingin dipinjam</h3>
+        <div class="tanggal-info">
+            <p>{{ $it['date']->format('d M Y H:i') }}</p>
         </div>
-        <div class="modal-body-custom">
-            <p>Apakah kamu ingin meminjamkan barangmu?</p>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="btn-modal btn-success-modal" onclick="approveRequest()">Ya</button>
-            <button class="btn-modal btn-secondary-modal" onclick="closeModal('approveModal')">Tidak</button>
-        </div>
-    </div>
-</div>
 
-<!-- Modal: Berhasil Dipinjamkan -->
-<div id="successModal" class="custom-modal">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3>Barangmu berhasil dipinjamkan!</h3>
+        <div>
+            <span class="status-badge status-{{ Str::slug($it['status']) }}">
+                {{ ucfirst($it['status']) }}
+            </span>
         </div>
-        <div class="modal-body-custom">
-            <p>Silahkan koordinasi langsung dengan peminjam untuk menyerahkan dan memastikan kembalinya barang!</p>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="btn-modal btn-primary-modal" onclick="closeModal('successModal')">Tutup</button>
-        </div>
-    </div>
-</div>
 
-<!-- Modal: Konfirmasi Hapus Permintaan -->
-<div id="deleteModal" class="custom-modal">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3>Apakah kamu ingin menghapus permintaan ini?</h3>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="btn-modal btn-success-modal" onclick="confirmDelete()">Ya</button>
-            <button class="btn-modal btn-secondary-modal" onclick="closeModal('deleteModal')">Tidak</button>
+        <div class="aksi-buttons">
+            <a href="{{ $it['url'] }}" class="btn-detail btn-aksi">Detail</a>
         </div>
     </div>
-</div>
+@empty
+    <div class="p-4 text-center text-muted">Belum ada riwayat.</div>
+@endforelse
 
-<!-- Modal: Beri Ulasan -->
-<div id="ratingModal" class="custom-modal">
-    <div class="modal-content-custom">
-        <div class="modal-header-custom">
-            <h3>Beri Ulasan</h3>
-        </div>
-        <div class="modal-body-custom">
-            <div class="star-rating" id="starRating">
-                <i class="bi bi-star star" data-rating="1"></i>
-                <i class="bi bi-star star" data-rating="2"></i>
-                <i class="bi bi-star star" data-rating="3"></i>
-                <i class="bi bi-star star" data-rating="4"></i>
-                <i class="bi bi-star star" data-rating="5"></i>
-            </div>
-        </div>
-        <div class="modal-footer-custom">
-            <button class="btn-modal btn-primary-modal" onclick="submitRating()">Tutup</button>
-        </div>
-    </div>
-</div>
 
 @endsection
 

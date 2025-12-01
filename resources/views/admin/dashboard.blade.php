@@ -730,15 +730,6 @@
             </div>
         </div>
 
-        <div class="stat-card" onclick="openModal('pendingModal')">
-            <div class="stat-card-content">
-                <h3>Menunggu Persetujuan</h3>
-                <div class="number">{{ $stats['peminjaman_pending'] }}</div>
-            </div>
-            <div class="stat-card-icon">
-                <i class="fas fa-clock"></i>
-            </div>
-        </div>
     </div>
 
     {{-- Pending Peminjaman --}}
@@ -803,74 +794,6 @@
         @endif
     </div>
 
-    {{-- Irresponsible Users --}}
-    <div class="section-card">
-        <div class="section-title">
-            <i class="fas fa-exclamation-circle"></i> User Dengan Banyak Peminjaman
-        </div>
-
-        @if($users_irresponsible->count() > 0)
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>👤 Nama User</th>
-                            <th>📧 Email</th>
-                            <th>Peminjaman</th>
-                            <th>Program Studi</th>
-                            <th>Status</th>
-                            <th>⚙️ Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($users_irresponsible as $user)
-                            <tr>
-                                <td><strong>{{ $user->name }}</strong></td>
-                                <td>{{ $user->email }}</td>
-                                <td><span style="background: #ffe6e6; color: #c41e3a; padding: 0.4rem 0.8rem; border-radius: 8px; font-weight: 600;">{{ $user->peminjamans_count }}x</span></td>
-                                <td>{{ $user->program_studi }}</td>
-                                <td>
-                                    @if($user->is_blocked)
-                                        <span class="badge badge-blocked">🚫 Diblokir</span>
-                                    @else
-                                        <span class="badge badge-active">✅ Aktif</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ route('admin.user-activity', $user->id) }}" class="btn-action btn-view">
-                                            <i class="fas fa-eye"></i> Aktivitas
-                                        </a>
-                                        @if($user->is_blocked)
-                                            <form action="{{ route('admin.unblock-user', $user->id) }}" method="POST" style="display:inline;">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-unblock">
-                                                    <i class="fas fa-unlock"></i> Buka
-                                                </button>
-                                            </form>
-                                        @else
-                                            <form action="{{ route('admin.block-user', $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin memblokir user ini?');">
-                                                @csrf
-                                                <button type="submit" class="btn-action btn-block">
-                                                    <i class="fas fa-ban"></i> Blokir
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-thumbs-up"></i>
-                <h3>Semua user bertanggung jawab</h3>
-                <p>Tidak ada user dengan peminjaman berlebihan</p>
-            </div>
-        @endif
-    </div>
 </div>
 
 <!-- Modals -->
@@ -949,7 +872,7 @@
 
             <h3>📋 Daftar Semua Barang</h3>
             @php
-                $allBarangs = \App\Models\Barang::all();
+                $allBarangs = \App\Models\Barangs::all();
             @endphp
 
             @if($allBarangs->count() > 0)
@@ -1000,7 +923,7 @@
 
             <h3>📋 Daftar Semua Peminjaman</h3>
             @php
-                $allPeminjamans = \App\Models\Peminjaman::with(['user', 'barang'])->latest()->get();
+                $allPeminjamans = \App\Models\Loan::with(['user', 'barang'])->latest()->get();
             @endphp
 
             @if($allPeminjamans->count() > 0)
@@ -1020,7 +943,6 @@
                                 <td>{{ $pinjam->user->name ?? '-' }}</td>
                                 <td>{{ $pinjam->barang->name ?? '-' }}</td>
                                 <td>{{ $pinjam->quantity }}x</td>
-                                <td>{{ $pinjam->created_at->format('d/m/Y') }}</td>
                                 <td><span class="badge badge-{{ strtolower($pinjam->status) }}">{{ ucfirst($pinjam->status) }}</span></td>
                             </tr>
                         @endforeach
@@ -1053,7 +975,7 @@
 
             <h3>📋 Peminjaman yang Memerlukan Persetujuan</h3>
             @php
-                $pendingPeminjamans = \App\Models\Peminjaman::with(['user', 'barang'])->where('status', 'pending')->latest()->get();
+                $pendingPeminjamans = \App\Models\Loan::with(['user', 'barang'])->where('status', 'pending')->latest()->get();
             @endphp
 
             @if($pendingPeminjamans->count() > 0)

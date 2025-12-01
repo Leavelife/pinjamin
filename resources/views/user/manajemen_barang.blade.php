@@ -396,12 +396,12 @@
 </style>
 
 <div class="container">
-    <h1 class="page-title">Manajemen barang</h1>
+    <h1 class="page-title">Manajemen Barang</h1>
 
     <!-- Search & Filter Section -->
     <div class="search-section">
         <div class="search-box">
-            <input type="text" placeholder="Cari barang atau buku..." id="searchInput">
+            <input type="text" placeholder="Cari barang..." id="searchInput">
             <div class="search-icons">
                 <i class="fas fa-search"></i>
                 <i class="fas fa-filter"></i>
@@ -409,7 +409,7 @@
         </div>
 
         <div class="filter-group">
-            <span class="filter-label">Jenis barang</span>
+            <span class="filter-label">Kategori</span>
             <div class="filter-buttons" id="categoryFilter">
                 <button class="filter-btn active" data-category="all">Semua</button>
                 <button class="filter-btn" data-category="buku">Buku</button>
@@ -425,63 +425,78 @@
                 <button class="filter-btn active" data-status="all">Semua</button>
                 <button class="filter-btn" data-status="tersedia">Tersedia</button>
                 <button class="filter-btn" data-status="dipinjam">Dipinjam</button>
-                <button class="filter-btn" data-status="tidak-tersedia">Tidak tersedia</button>
+                <button class="filter-btn" data-status="rusak">Rusak</button>
             </div>
         </div>
     </div>
 
     <!-- Items Grid -->
-    <div class="items-grid" id="itemsGrid">
-        @forelse($barangs as $barang)
-            <div class="item-card">
-                <img src="{{ $barang->image ? asset('storage/' . $barang->image) : 'https://via.placeholder.com/300x200' }}" 
-                     alt="{{ $barang->name }}" class="item-image">
-                <div class="item-content">
-                    <div class="item-header">
-                        <h3 class="item-title">{{ $barang->name }}</h3>
-                        <span class="status-badge status-{{ str_replace(' ', '-', strtolower($barang->status)) }}">
-                            {{ ucfirst($barang->status) }}
-                        </span>
-                    </div>
-                    <div class="item-meta">
-                        <span>Total: {{ $barang->quantity }}x</span>
-                        <span class="item-category">{{ ucfirst($barang->category) }}</span>
-                    </div>
-                    <div class="item-actions">
-                        @auth
-                            @if(Auth::id() === $barang->user_id || Auth::user()->role === 'admin')
-                                <a href="{{ route('barang.edit', $barang->id) }}" class="btn-action btn-edit">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <form action="{{ route('barang.destroy', $barang->id) }}" method="POST" style="display:inline;" 
-                                      onsubmit="return confirm('Yakin ingin menghapus?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-action btn-delete">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </form>
-                            @endif
-                        @endauth
-                        
-                        <a href="{{ route('barang.show', $barang->id) }}" class="btn-action btn-detail">Detail</a>
-                    </div>
+<div class="items-grid" id="itemsGrid">
+    @forelse($barangs as $barang)
+        <div class="item-card">
+
+            {{-- Foto --}}
+            <img src="{{ $barang->photo ? asset('storage/' . $barang->photo) : 'https://via.placeholder.com/300x200' }}" 
+                alt="{{ $barang->name }}" 
+                class="item-image">
+
+            <div class="item-content">
+                <div class="item-header">
+                    <h3 class="item-title">{{ $barang->name }}</h3>
+
+                    <span class="status-badge status-{{ strtolower($barang->status) }}">
+                        {{ ucfirst($barang->status) }}
+                    </span>
+                </div>
+
+                <div class="item-meta">
+                    <span>Total: {{ $barang->qty }} Barang</span>
+                    <span class="item-category">{{ ucfirst($barang->category) }}</span>
+                </div>
+
+                <div class="item-actions">
+                    @auth
+                        {{-- Hanya pemilik barang atau admin --}}
+                        @if(Auth::id() === $barang->user_id || Auth::user()->role === 'admin')
+
+                            {{-- Hapus barang --}}
+                            <form action="{{ route('items.delete', $barang->id) }}"
+                                  method="POST"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Yakin ingin menghapus?')">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit" class="btn-action btn-delete">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            </form>
+                        @endif
+                    @endauth
+
+                    {{-- Detail --}}
+                    <a href="{{ route('items.show.page', $barang->id) }}" class="btn-action btn-detail">
+                        Detail
+                    </a>
                 </div>
             </div>
-        @empty
-            <div class="empty-state" style="grid-column: 1/-1;">
-                <i class="fas fa-box-open"></i>
-                <h3>Belum ada barang</h3>
-                <p>Mulai tambahkan barang yang ingin kamu pinjamkan</p>
-            </div>
-        @endforelse
-    </div>
+        </div>
+
+    @empty
+        <div class="empty-state" style="grid-column: 1/-1;">
+            <i class="fas fa-box-open"></i>
+            <h3>Belum ada barang</h3>
+            <p>Mulai tambahkan barang yang ingin kamu pinjamkan</p>
+        </div>
+    @endforelse
 </div>
 
-<!-- Add Button -->
-<a href="{{ route('barang.create') }}" class="btn-add">
+<!-- Floating Add Button -->
+<a href="{{ route('barang.create.page') }}" class="btn-add">
     <i class="fas fa-plus"></i>
 </a>
+
+
 
 <script>
     // Filter Button Active State

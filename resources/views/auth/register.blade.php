@@ -96,7 +96,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-secondary-color w-100 fw-bold py-2">Daftar</button>
+            <button type="submit" class="btn btn-secondary-color w-100 fw-bold py-2 border-2">Daftar</button>
 
             {{-- LINK KE LOGIN --}}
             <div class="text-center mt-3">

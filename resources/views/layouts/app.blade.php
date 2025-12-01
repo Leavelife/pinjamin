@@ -114,32 +114,53 @@
     </div>
 
     <div class="nav-menu d-none d-md-flex align-items-center position-relative">
-        <a href="{{ route('dashboard') }}" class="nav-link px-3 {{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
-        <a href="{{ route('riwayat') }}" class="nav-link px-3 {{ request()->routeIs('riwayat') ? 'active' : '' }}">Riwayat</a>
+        @if(Auth::check() && Auth::user()->role === 'admin')
+            <a href="{{ route('admin.dashboard') }}" class="nav-link px-3">
+                <i class="fas fa-chart-line me-2"></i>Admin Dashboard
+            </a>
+        @endif
+        <a href="{{ route('dashboard') }}" 
+           class="nav-link px-3 {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+           Dashboard
+        </a>
+
+        <a href="{{ route('loan.history.page') }}" 
+           class="nav-link px-3 {{ request()->routeIs('loan.history') ? 'active' : '' }}">
+           Riwayat
+        </a>
 
         <!-- moving underline indicator -->
         <span class="nav-underline"></span>
     </div>
 
     <div class="d-flex align-items-center nav-icons">
-        <a href="{{ url('/pinjam') }}" aria-label="Cari"><i class="bi bi-search"></i></a>
-        <!-- Notifikasi: selalu tampil, badge kecil untuk menandai notifikasi baru -->
-        <a href="{{ url('/notifikasi') }}" class="position-relative mx-2" aria-label="Notifikasi">
+        {{-- Notifikasi --}}
+        <a href="{{ route(name: 'user.notification.page') }}" 
+           class="position-relative mx-2" aria-label="Notifikasi">
             <i class="bi bi-bell"></i>
-            <span class="badge bg-danger position-absolute rounded-circle" style="width:8px;height:8px;top:0;right:-2px;padding:0;"></span>
+            <span class="badge bg-danger position-absolute rounded-circle" 
+                  style="width:8px;height:8px;top:0;right:-2px;padding:0;"></span>
         </a>
-        <a href="{{ url('/profile') }}"><i class="bi bi-person"></i></a>
-        
-        <!-- Desktop: Dropdown Menu (Three horizontal lines) -->
+
+        {{-- Profile --}}
+        <a href="{{ route('profile.view.page') }}">
+            <i class="bi bi-person"></i>
+        </a>
+
+        {{-- Desktop Dropdown --}}
         <div class="dropdown d-none d-md-inline-block">
             <a href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu">
                 <i class="bi bi-list"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                <li><a class="dropdown-item" href="{{ url('/manajemen-barang') }}"><i class="bi bi-box-seam"></i> Manajemen Barang</a></li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('items.mine') }}">
+                        <i class="bi bi-box-seam"></i> Manajemen Barang
+                    </a>
+                </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <form action="{{ url('/logout') }}" method="POST" class="d-inline">
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="dropdown-item text-danger">
                             <i class="bi bi-box-arrow-right"></i> Keluar
@@ -149,31 +170,55 @@
             </ul>
         </div>
 
-        <!-- Mobile: Hamburger Menu -->
+        {{-- Mobile Hamburger --}}
         <a href="#" class="d-md-none" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
             <i class="bi bi-list"></i>
         </a>
     </div>
 </nav>
-
-<!-- Mobile Offcanvas -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title">Pinjam.in</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
+
     <div class="offcanvas-body">
         <ul class="list-unstyled">
-            <li class="mb-2"><a href="{{ url('/dashboard') }}" class="text-decoration-none">Beranda</a></li>
-            <li class="mb-2"><a href="{{ url('/riwayat') }}" class="text-decoration-none">Riwayat</a></li>
-            <li class="mb-2"><a href="{{ url('/notifikasi') }}" class="text-decoration-none">Notifikasi</a></li>
+            <li class="mb-2">
+                <a href="{{ route('dashboard') }}" class="text-decoration-none">Beranda</a>
+            </li>
+            <li class="mb-2">
+                <a href="{{ route('loan.history.page') }}" class="text-decoration-none">Riwayat</a>
+            </li>
+            @if(Auth::check() && Auth::user()->role === 'admin')
+                <li class="mb-2">
+                    <a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Admin Dashboard
+                    </a>
+                </li>
+            @endif
+            <li class="mb-2">
+                <a href="{{ route('user.notification.page') }}" class="text-decoration-none">Notifikasi</a>
+            </li>
+
             <li><hr></li>
-            <li class="mb-2"><a href="{{ url('/pengaturan') }}" class="text-decoration-none"><i class="bi bi-gear me-2"></i>Pengaturan</a></li>
-            <li class="mb-2"><a href="{{ url('/bantuan') }}" class="text-decoration-none"><i class="bi bi-question-circle me-2"></i>Bantuan</a></li>
-            <li class="mb-2"><a href="{{ url('/tentang') }}" class="text-decoration-none"><i class="bi bi-info-circle me-2"></i>Tentang</a></li>
+
+            <li class="mb-2">
+                <a href="{{ route('profile.view.page') }}" class="text-decoration-none">
+                    <i class="bi bi-gear me-2"></i>Pengaturan Profil
+                </a>
+            </li>
+
+            <li class="mb-2">
+                <a href="{{ route('items.mine') }}" class="text-decoration-none">
+                    <i class="bi bi-box-seam me-2"></i>Manajemen Barang
+                </a>
+            </li>
+
             <li><hr></li>
+
             <li>
-                <form action="{{ url('/logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="btn btn-danger btn-sm w-100">
                         <i class="bi bi-box-arrow-right me-2"></i>Keluar
@@ -183,6 +228,7 @@
         </ul>
     </div>
 </div>
+
 
 <div class="container mt-4 mb-5">
     @yield('content')

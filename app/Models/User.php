@@ -14,12 +14,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
-        'program_studi',
-        'location',
-        'phone',
-        'avatar',
-        'is_blocked',
+        'prodi',
+        'no_hp',
+        'foto_profile',
+        'role'
     ];
 
     protected $hidden = [
@@ -27,13 +25,20 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function peminjamans()
+    /* RELATIONS */
+
+    public function barangs()
     {
-        return $this->hasMany(Peminjaman::class);
+        return $this->hasMany(Barang::class);
     }
 
-    public function isAdmin()
+    public function pinjamans()
     {
-        return $this->role === 'admin';
+        return $this->hasMany(Pinjaman::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 }

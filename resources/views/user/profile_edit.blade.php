@@ -155,33 +155,26 @@
             <input type="text" name="name" class="input-field"
                    value="{{ old('name', $user->name ?? '') }}" required>
         </div>
-
-        {{-- PROGRAM STUDI --}}
-        <div class="input-box">
-            <label>Program Studi</label>
-            <input type="text" name="program_studi" class="input-field"
-                   value="{{ old('program_studi', $user->program_studi ?? '') }}" required>
-        </div>
-
-        {{-- LOKASI --}}
-        <div class="input-box">
-            <label>Lokasi Anda</label>
-            <input type="text" name="location" class="input-field"
-                   value="{{ old('location', $user->location ?? '') }}" required>
-        </div>
-
+        
         {{-- EMAIL --}}
         <div class="input-box">
             <label>Email</label>
             <input type="email" name="email" class="input-field"
-                   value="{{ old('email', $user->email ?? '') }}" required>
+            value="{{ old('email', $user->email ?? '') }}" required>
+        </div>
+
+        {{-- PROGRAM STUDI --}}
+        <div class="input-box">
+            <label>Program Studi</label>
+            <input type="text" name="prodi" class="input-field"
+                   value="{{ old('prodi', $user->prodi ?? '') }}" required>
         </div>
 
         {{-- NOMOR HP --}}
         <div class="input-box">
             <label>Nomor HP</label>
-            <input type="text" name="phone" class="input-field"
-                   value="{{ old('phone', $user->phone ?? '') }}" required>
+            <input type="text" name="no_hp" class="input-field"
+                   value="{{ old('no_hp', $user->no_hp ?? '') }}" required>
         </div>
 
         {{-- TIPS --}}

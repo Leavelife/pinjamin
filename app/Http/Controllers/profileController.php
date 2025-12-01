@@ -4,55 +4,42 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
-    public function index()
+    public function me()
     {
-        $user = Auth::user();
-        return view('user.profile', compact('user'));
-    }
-
-    public function edit()
-    {
-        $user = Auth::user();
-        
-        if (!$user) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
-        }
-        
-        // Gunakan view yang sama, tapi render mode edit
-        return view('user.profile', compact('user'))->with('editMode', true);
+        return response()->json(Auth::user());
     }
 
     public function update(Request $request)
     {
         $user = Auth::user();
-        
-        if (!$user) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
-        }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'program_studi' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'required|string|max:20',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+        $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'email|max:255|unique:users,email,' . $user->id,
+            'prodi' => 'string|max:255',
+            'no_hp' => 'nullable|string|max:20',
+            'foto_profile' => 'nullable|image|max:2048',
         ]);
 
-        if($request->hasFile('avatar')) {
-            if($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = $path;
+        // Upload foto jika ada
+        if ($request->hasFile('foto_profile')) {
+            $path = $request->file('foto_profile')->store('profile', 'public');
+            $user->foto_profile = $path;
         }
 
-        $user->update($validated);
+        // Update sesuai kolom database
+        $user->update([
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'prodi'         => $request->prodi,
+            'no_hp'         => $request->no_hp,
+            'foto_profile'  => $user->foto_profile, // tetap path hasil upload
+        ]);
 
-        return redirect()->route('profile.index')->with('success', 'Profil berhasil diperbarui!');
+        return redirect()->route('profile.view.page')->with('success', 'Profil berhasil diperbarui!');
     }
+
 }

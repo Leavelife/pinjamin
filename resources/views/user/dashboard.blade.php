@@ -80,14 +80,14 @@
 <div class="dashboard-box">
 
     <div class="text-center title-section">
-        <h2>Halo, Nadia!</h2>
+        <h2>Halo, {{ auth()->user()->name }}!</h2>
         <p>Selamat datang di dashboard Pinjam.in</p>
         <p class="mt-3" style="font-size: 14px;">Silahkan pilih menu yang Anda inginkan:</p>
     </div>
 
     <div class="row justify-content-center menu-wrapper">
         <div class="col-md-4 col-10">
-            <a href="/pinjam" class="menu-link">
+            <a href={{ route('items.index') }} class="menu-link">
                 <div class="menu-option">
                     <div class="icon-circle">
                         <i class="bi bi-search"></i>
@@ -99,7 +99,7 @@
         </div>
 
         <div class="col-md-4 col-10">
-            <a href="{{ route('barang.create') }}" class="menu-link">
+            <a href="/barang/create" class="menu-link">
                 <div class="menu-option">
                     <div class="icon-circle">
                         <i class="bi bi-plus-lg"></i>
