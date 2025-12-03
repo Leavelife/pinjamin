@@ -350,7 +350,7 @@
                 }
             } else {
                 // Redirect to main page or role-selection
-                window.location.href = '/role-selection'; // Sesuaikan dengan route Laravel Anda
+                window.location.href = 'role-selection'; // Sesuaikan dengan route Laravel Anda
             }
         }
 

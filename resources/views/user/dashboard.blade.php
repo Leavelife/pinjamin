@@ -99,7 +99,7 @@
         </div>
 
         <div class="col-md-4 col-10">
-            <a href="/barang/create" class="menu-link">
+            <a href={{ route('barang.create.page') }} class="menu-link">
                 <div class="menu-option">
                     <div class="icon-circle">
                         <i class="bi bi-plus-lg"></i>

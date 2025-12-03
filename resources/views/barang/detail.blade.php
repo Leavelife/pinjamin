@@ -4,56 +4,100 @@
 
 @section('content')
 
-<div class="container mx-auto p-4 max-w-4xl">
-    
-    {{-- Notifikasi Error/Peringatan di atas --}}
+<div class="container my-5">
+    {{-- Notifikasi Error/Peringatan --}}
     @if(session('error'))
-        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg border border-red-300">
+        <div class="alert alert-danger">
             {{ session('error') }}
         </div>
     @endif
 
-    <div class="flex flex-col md:flex-row items-start bg-white p-6 rounded-xl shadow-lg">
-        
-        {{-- Kolom Kiri: Gambar --}}
-        <div class="md:w-1/3 w-full flex justify-center mb-6 md:mb-0 md:mr-6">
-            <img src="{{ asset(path: 'storage/'. $barang->photo) }}" alt="{{ $barang->name }}" class="max-w-xs shadow-xl rounded-lg w-full object-cover">
-        </div>
-        
-        {{-- Kolom Kanan: Detail & Aksi --}}
-        <div class="md:w-2/3 w-full">
-            
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-3xl font-bold text-gray-800">{{ $barang->name }}</h1>
-                {{-- Status --}}
-                <span class="inline-block px-4 py-1 text-sm font-semibold rounded-full 
-                    {{ strtolower($barang->status) == 'tersedia' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }}">
-                    {{ ucfirst($barang->status) }}
-                </span>
-
+    <div class="card shadow-lg rounded-xl p-4 p-md-5">
+        <div class="row g-4">
+            {{-- Kolom Kiri: Gambar --}}
+            <div class="col-md-4 text-center">
+                <img src="{{ asset('storage/' . $barang->photo) }}" alt="{{ $barang->name }}" class="img-fluid rounded shadow-lg">
             </div>
-            {{-- Deskripsi --}}
-            <p class="mt-2 px-4 text-gray-600 mb-6 leading-relaxed">
-                {{ $barang->description }}
-            </p>
 
-            {{-- Detail Pemilik & Peminjaman Grid --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                {{-- Informasi Pemilik --}}
-                <div class="p-4 bg-teal-50/50 rounded-lg border border-teal-100">
-                    <h3 class="text-lg font-semibold mb-2 text-teal-700">Informasi pemilik</h3>
-                    <ul class="text-sm space-y-1 text-gray-600">
-                        <li><i class="fas fa-user mr-2"></i><strong>Nama:</strong> {{ $barang->user->name }}</li>
-                        <li><i class="fas fa-phone mr-2"></i><strong>Kontak:</strong> {{ $barang->user->no_hp ?? 'kosong' }}</li>
-                        <li><i class="fas fa-envelope mr-2"></i><strong>Email:</strong> {{ $barang->user->email }}</li>
-                    </ul>
+            {{-- Kolom Kanan: Detail & Aksi --}}
+            <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="h3 fw-bold">{{ strtoupper($barang->name) }}</h1>
+                    {{-- Status --}}
+                    <span class="badge 
+                        {{ strtolower($barang->status) == 'tersedia' ? 'bg-success' : 'bg-danger' }} fs-6 py-2 px-3">
+                        {{ ucfirst($barang->status) }}
+                    </span>
+                </div>
+
+                {{-- Deskripsi --}}
+                <p class="text-muted mb-4">
+                    Deskripsi:
+                    {{ $barang->description }}
+                </p>
+
+                {{-- Detail Pemilik --}}
+                <div class="card border-light bg-light mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary mb-3">Informasi Pemilik</h5>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-user me-2"></i><strong>Nama:</strong> {{ $barang->user->name }}</li>
+                            <li><i class="fas fa-phone me-2"></i><strong>Kontak:</strong> {{ $barang->user->no_hp ?? 'kosong' }}</li>
+                            <li><i class="fas fa-envelope me-2"></i><strong>Email:</strong> {{ $barang->user->email }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                @if(auth()->id() !== $barang->user_id && strtolower($barang->status) === 'tersedia')
+                    <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                        Pinjam Barang
+                    </button>
+                @endif
+
+                {{-- MODAL CHECKOUT --}}
+                <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                        <form action="{{ route('loan.request', $barang->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                            <h5 class="modal-title" id="checkoutModalLabel">Peminjaman: {{ $barang->name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                            {{-- Gambar Barang --}}
+                            <div class="text-center mb-3">
+                                <img src="{{ asset('storage/' . $barang->photo) }}" alt="{{ $barang->name }}" class="img-fluid rounded shadow-sm" style="max-height:200px;">
+                            </div>
+
+                            {{-- Tanggal Pinjam --}}
+                            <div class="mb-3">
+                                <label for="tanggal_pinjam" class="form-label">Tanggal Pinjam</label>
+                                <input type="date" class="form-control" id="tanggal_pinjam" name="tanggal_pinjam" required>
+                            </div>
+
+                            {{-- Tanggal Kembali --}}
+                            <div class="mb-3">
+                                <label for="tanggal_kembali" class="form-label">Tanggal Kembali</label>
+                                <input type="date" class="form-control" id="tanggal_kembali" name="tanggal_kembali" required>
+                            </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Ajukan Peminjaman</button>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
+
 
 {{-- MODAL NOTIFIKASI SUKSES --}}
 @if(session('loan_submitted'))

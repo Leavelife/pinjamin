@@ -411,37 +411,99 @@
         }
     }
 </style>
+<table class="riwayat-table">
+    <tr>
+        <th>Nama Peminjam</th>
+        <th>Nama Barang</th>
+        <th>Jumlah</th>
+        <th>Tanggal Pinjam</th>
+        <th>Status Pinjaman</th>
+        <th>Aksi</th>
+    </tr>
+</table>
 @forelse($loans as $it)
-    <div class="riwayat-row">
-        <div class="barang-info">
-            <img src="{{ $it['meta']['gambar'] }}" class="barang-img" alt="">
-            <div class="barang-text">
-                <h4><a href="{{ $it['url'] }}">{{ $it['title'] }}</a></h4>
-                <p>{{ $it['subtitle'] }}</p>
-            </div>
-        </div>
+    @php
+        $tanggalPinjam = isset($it['tanggal_pinjam'])
+            ? \Carbon\Carbon::parse($it['tanggal_pinjam'])->format('d/m/Y')
+            : '-';
+    @endphp
+<table class="riwayat-table">
+    
+    <tr>
+        {{-- Nama Peminjam --}}
+        <td>{{ $it['user_name'] ?? 'N/A' }}</td>
 
-        <div class="keterangan-info">
-            <p>{{ ucfirst($it['type']) }}</p>
-        </div>
+        {{-- Nama Barang --}}
+        <td>{{ $it['barang_name'] ?? 'N/A' }}</td>
 
-        <div class="tanggal-info">
-            <p>{{ $it['date']->format('d M Y H:i') }}</p>
-        </div>
+        {{-- Jumlah --}}
+        <td>{{ $it['qty'] ?? 1 }}</td>
 
-        <div>
-            <span class="status-badge status-{{ Str::slug($it['status']) }}">
-                {{ ucfirst($it['status']) }}
-            </span>
-        </div>
+        {{-- Tanggal Pinjam --}}
+        <td>{{ $tanggalPinjam }}</td>
 
-        <div class="aksi-buttons">
-            <a href="{{ $it['url'] }}" class="btn-detail btn-aksi">Detail</a>
-        </div>
-    </div>
+        {{-- Status Pinjaman --}}
+        <td>
+            @php
+                $status = $it['status'] ?? '';
+            @endphp
+
+            @switch($status)
+                @case('diajukan')
+                    <span class="badge bg-warning">Pending</span>
+                    @break
+
+                @case('dipinjam')
+                    <span class="badge bg-success">Dipinjam</span>
+                    @break
+
+                @case('ditolak')
+                    <span class="badge bg-danger">Ditolak</span>
+                    @break
+
+                @case('dikembalikan')
+                    <span class="badge bg-secondary">Dikembalikan</span>
+                    @break
+
+                @default
+                    <span class="badge bg-dark">Unknown</span>
+            @endswitch
+        </td>
+
+        {{-- Aksi --}}
+        <td>
+            @if(($it['status'] ?? null) == 'diajukan' && auth()->id() == ($it['owner_id'] ?? null))
+                
+                {{-- Setujui --}}
+                <form action="{{ route('loan.approve', $it['id']) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-success btn-sm">
+                        Setujui
+                    </button>
+                </form>
+
+                {{-- Tolak --}}
+                <form action="{{ route('loan.reject', $it['id']) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        Tolak
+                    </button>
+                </form>
+
+            @else
+                <span class="text-muted">-</span>
+            @endif
+        </td>
+    </tr>
+</table>
 @empty
-    <div class="p-4 text-center text-muted">Belum ada riwayat.</div>
+    <tr>
+        <td colspan="6" class="text-center text-muted py-4">
+            Belum ada riwayat.
+        </td>
+    </tr>
 @endforelse
+
 
 
 @endsection

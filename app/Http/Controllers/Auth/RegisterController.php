@@ -27,6 +27,6 @@ class RegisterController extends Controller
         ]);
 
         Auth::login($user);
-        return redirect()->route('onboarding');
+        return redirect()->route('dashboard');
     }
 }

@@ -135,7 +135,7 @@
 
     <div class="d-flex align-items-center nav-icons">
         {{-- Notifikasi --}}
-        <a href="{{ route(name: 'user.notification.page') }}" 
+        <a href="{{ route(name: 'notifications.page') }}" 
            class="position-relative mx-2" aria-label="Notifikasi">
             <i class="bi bi-bell"></i>
             <span class="badge bg-danger position-absolute rounded-circle" 
@@ -198,7 +198,7 @@
                 </li>
             @endif
             <li class="mb-2">
-                <a href="{{ route('user.notification.page') }}" class="text-decoration-none">Notifikasi</a>
+                <a href="{{ route('notifications.page') }}" class="text-decoration-none">Notifikasi</a>
             </li>
 
             <li><hr></li>

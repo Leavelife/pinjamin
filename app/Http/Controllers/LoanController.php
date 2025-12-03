@@ -25,6 +25,7 @@ class LoanController extends Controller
         // Validasi tanggal pinjam saja
         $request->validate([
             'tanggal_pinjam' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
         ]);
 
         // Buat pinjaman
@@ -32,13 +33,15 @@ class LoanController extends Controller
             'user_id' => Auth::id(),       // peminjam
             'barang_id' => $barangId,      // barang
             'tanggal_pinjam' => $request->tanggal_pinjam,
+            'tanggal_kembali' => $request->tanggal_kembali,
             'status' => 'diajukan',
         ]);
 
         // Buat notifikasi untuk pemilik barang
         Notification::create([
             'user_id' => $barang->user_id,
-            'type' => 'loan_request',
+            'type' => 'pengajuan_peminjaman',
+            'title' => 'Pengajuan Peminjaman Baru',
             'message' => "Pengajuan pinjaman baru untuk barang: " . $barang->name,
         ]);
 
@@ -48,36 +51,44 @@ class LoanController extends Controller
     // ============================
     // RIWAYAT PINJAMAN SAYA
     // ============================
+    // --- LoanController.php ---
     public function historyPage()
     {
-        $loans = Loan::with(['barang', 'user']) // barang = item yang dipinjam; user = peminjam
-            ->where('user_id', Auth::id())     // berdasarkan siapa yang meminjam
-            ->orderBy('created_at', 'desc')
+        $user = Auth::user();
+
+        $loans = Loan::with(['user', 'barang', 'barang.user'])
+            ->where('user_id', $user->id) 
+            ->orWhereHas('barang', function($q) use ($user) {
+                $q->where('user_id', $user->id); 
+            })
+            ->latest()
             ->get();
 
-        // Format card seperti struktur lama $it[]
+        // Pastikan semua data yang dibutuhkan di Blade ada di sini
         $formatted = $loans->map(function ($loan) {
 
             return [
+                // Kunci yang dibutuhkan untuk logika dan tampilan:
+                'id' => $loan->id, // ID Pinjaman untuk route Approve/Reject
+                'user_name' => $loan->user->name ?? 'N/A', // Nama Peminjam
+                'barang_name' => $loan->barang->name ?? 'N/A', // Nama Barang
+                'qty' => 1, // Asumsi Qty
+                'tanggal_pinjam' => $loan->tanggal_pinjam, // Objek Carbon untuk format
+                'status' => $loan->status, 
+                'owner_id' => $loan->barang->user_id, // ID pemilik barang
+                
+                // Kunci yang sudah ada sebelumnya
                 'title' => $loan->barang->name ?? 'Tidak diketahui',
                 'subtitle' => 'Kode Barang #' . $loan->barang_id,
                 'url' => route('items.show.page', $loan->barang_id),
-
-                // Format tanggal
                 'date' => \Carbon\Carbon::parse($loan->created_at),
-
-                // Jenis aktivitas
-                'type' => $loan->status, // diajukan / dipinjam / dikembalikan
-
-                // Akses ke status untuk badge
-                'status' => $loan->status,
-
-                // Meta untuk gambar
+                'type' => $loan->status, 
                 'meta' => [
                     'gambar' => $loan->barang->photo
                         ? asset('storage/' . $loan->barang->photo)
                         : '/images/default.png'
-                ]
+                ],
+
             ];
         });
 
@@ -107,39 +118,49 @@ class LoanController extends Controller
     // ============================
     public function approve($id)
     {
-        $loan = Loan::with('barang')->findOrFail($id);
+        $loan = Loan::findOrFail($id);
 
-        if ($loan->barang->user_id !== Auth::id()) {
-            return back()->with('error', 'Tidak punya akses.');
+        if ($loan->barang->user_id != auth()->id()) {
+            abort(403, 'Unauthorized action');
         }
 
-        $loan->update([
-            'status' => 'dipinjam',
+        $loan->status = 'dipinjam';
+        $loan->save();
+
+        // Buat notifikasi ke peminjam
+        Notification::create([
+            'user_id' => $loan->user_id,
+            'title' => 'Peminjaman Disetujui',
+            'message' => "Pengajuan peminjaman {$loan->barang->name} telah disetujui",
+            'related_id' => $loan->id,
+            'related_type' => 'loan',
         ]);
 
-        return back()->with('success', 'Peminjaman disetujui.');
+        return back()->with('success', 'Peminjaman disetujui!');
     }
 
-    // ============================
-    // USER MENGAJUKAN PENGEMBALIAN
-    // ============================
-    public function requestReturn(Request $request, $id)
+    // Tolak peminjaman (hanya pemilik barang)
+    public function reject($id)
     {
         $loan = Loan::findOrFail($id);
 
-        if ($loan->user_id !== Auth::id()) {
-            return back()->with('error', 'Akses ditolak.');
+        if ($loan->barang->user_id != auth()->id()) {
+            abort(403, 'Unauthorized action');
         }
 
-        $request->validate([
-            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam'
+        $loan->status = 'ditolak';
+        $loan->save();
+
+        // Buat notifikasi ke peminjam
+        Notification::create([
+            'user_id' => $loan->user_id,
+            'title' => 'Peminjaman Ditolak',
+            'message' => "Pengajuan peminjaman {$loan->barang->name} ditolak",
+            'related_id' => $loan->id,
+            'related_type' => 'loan',
         ]);
 
-        $loan->update([
-            'tanggal_kembali' => $request->tanggal_kembali,
-        ]);
-
-        return back()->with('success', 'Permintaan pengembalian dikirim.');
+        return back()->with('success', 'Peminjaman ditolak!');
     }
 
     // ============================

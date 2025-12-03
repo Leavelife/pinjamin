@@ -123,6 +123,9 @@ Route::middleware(['auth'])->group(function () {
 
         // Detail pinjaman saya
         Route::get('/detail/{id}', [LoanController::class, 'detail'])->name('detail');
+        Route::post('/detail/request/{id}', [LoanController::class, 'requestLoan'])->name('request');
+        Route::post('/{id}/approve', [LoanController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [LoanController::class, 'reject'])->name('reject');
     });
 
     Route::get('/pinjam', fn() => view('user.pinjam'))->name('user.pinjam.page');
@@ -133,8 +136,7 @@ Route::middleware(['auth'])->group(function () {
     // ============================
     // NOTIFIKASI
     // ============================
-    Route::get('/notifications', fn() => view('user.notification'))->name('user.notification.page');
-    Route::get('/notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.page');
 
     // Menandai notifikasi sebagai sudah dibaca (bisa dipakai AJAX)
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

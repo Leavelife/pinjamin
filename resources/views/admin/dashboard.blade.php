@@ -833,7 +833,7 @@
                             <tr>
                                 <td><strong>{{ $user->name }}</strong></td>
                                 <td>{{ $user->email }}</td>
-                                <td>{{ $user->program_studi ?? '-' }}</td>
+                                <td>{{ $user->prodi ?? '-' }}</td>
                                 <td>
                                     @if($user->is_blocked)
                                         <span class="badge badge-blocked">Diblokir</span>
@@ -890,7 +890,7 @@
                             <tr>
                                 <td><strong>{{ $barang->name }}</strong></td>
                                 <td>{{ $barang->category ?? '-' }}</td>
-                                <td>{{ $barang->stock ?? '-' }}</td>
+                                <td>{{ $barang->qty ?? '-' }}</td>
                                 <td>{{ $barang->user->name ?? '-' }}</td>
                             </tr>
                         @endforeach
@@ -942,8 +942,9 @@
                             <tr>
                                 <td>{{ $pinjam->user->name ?? '-' }}</td>
                                 <td>{{ $pinjam->barang->name ?? '-' }}</td>
-                                <td>{{ $pinjam->quantity }}x</td>
-                                <td><span class="badge badge-{{ strtolower($pinjam->status) }}">{{ ucfirst($pinjam->status) }}</span></td>
+                                <td>{{ $pinjam->barang->qty }}</td>
+                                <td>{{ $pinjam->tanggal_pinjam }}</td>
+                                <td><span {{ strtolower($pinjam->status) }}>{{ ucfirst($pinjam->status) }}</span></td>
                             </tr>
                         @endforeach
                     </tbody>
